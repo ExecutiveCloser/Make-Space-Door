@@ -34,8 +34,8 @@ void setup() {
  // Open serial communications and wait for port to open:
   Serial.begin(9600);
   pinMode(6, OUTPUT); 
-    pinMode(4, OUTPUT); 
-      pinMode(3, OUTPUT); 
+    pinMode(9, OUTPUT); 
+      pinMode(10, OUTPUT); 
    while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
@@ -46,43 +46,46 @@ void setup() {
   server.begin();
   Serial.print("server is at ");
   Serial.println(Ethernet.localIP());
+  // listen for incoming clients
+ 
 }
 
 
 void loop() {
+
+//THIS RELOCKS THE DOOR 
   digitalWrite(6, HIGH);
-  digitalWrite(4, LOW);
-  digitalWrite(3, HIGH);
- 
-  // listen for incoming clients
+  digitalWrite(9, LOW);
+  digitalWrite(10, HIGH);
   EthernetClient client = server.available();
+  
   if (client) {
-   boolean currentLineIsBlank = true;
-    buffer = ""; 
-    while (client.connected()) 
-     if (client.available()) {
-        char c = client.read();
-        Serial.print(c);
-        buffer+=c;
-        // if you've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so you can send a reply
-        if (c == '\n' && currentLineIsBlank) {
+				boolean currentLineIsBlank = true;
+					buffer = ""; 
+				while (client.connected()) { 
+         if (client.available()) {
+					char c = client.read();
+					Serial.print(c);
+					buffer+=c;
+					// if you've gotten to the end of the line (received a newline
+					// character) and the line is blank, the http request has ended,
+					// so you can send a reply
+							if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
-          client.print("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' />");
-        //client.print("<meta http-equiv='refresh' content='1; url=http://192.168.0.201/'>");
-client.print("<title>Make Space</title>");
+					client.print("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' />");
+					//client.print("<meta http-equiv='refresh' content='1; url=http://192.168.0.201/'>");
+					client.print("<title>Make Space</title>");
           
-           client.println("<html><body>");
-//////wake up////
-client.print("<a href='http://192.168.1.177/?status=unlock'>UNLOCK</a><br /><br />");
-////shut down////
-client.print("<a href='http://192.168.1.177/?status=lock'>LOCK</a>");
+						client.println("<html><body>");
+			                      //////wake up////
+									client.print("<a href='http://192.168.1.177/?status=unlock'>UNLOCK</a><br /><br />");
+			       ////shut down////
+			       client.print("<a href='http://192.168.1.177/?status=lock'>LOCK</a>");
       
-          client.println("</body>");
-          // output the value of each analog input pin
+                     client.println("</body>");
+                      // output the value of each analog input pin
       
-          client.println("</html>");
+                     client.println("</html>");
           break;
         }
       
@@ -90,32 +93,35 @@ client.print("<a href='http://192.168.1.177/?status=lock'>LOCK</a>");
           
           currentLineIsBlank = true;
           buffer="";
-        } else if (c == '\r') {
+        
+       } else if (c == '\r') {
           
              if(buffer.indexOf("GET /?status=unlock")>=0){
-          digitalWrite(6, HIGH);
-           digitalWrite(4, LOW);
-            digitalWrite(3, HIGH);
-            delay(5000);
+             digitalWrite(6, LOW);
+             digitalWrite(9, LOW);
+             digitalWrite(10, HIGH);
+             delay(5000);
         
           
-             }
-            
-             else 
-             if(buffer.indexOf("GET /?status=lock")>=0){
-          digitalWrite(6, LOW);
-          digitalWrite(4, HIGH);
-            digitalWrite(3, LOW); 
-            delay(5000);
-       } else {
-          // you've gotten a character on the current line
-          currentLineIsBlank = false;
+             
+			                                              } 
+
+			  if(buffer.indexOf("GET /?status=lock")>=0){
+              digitalWrite(6, HIGH);
+              digitalWrite(9, HIGH);
+              digitalWrite(10, LOW); 
+              delay(5000);
+		  
+		                                                 }
         }  // ends c == \r
-      } //end 
-  
-      }
-        
       
+  
+     
+        
+      } //end c
+	  }
+	  
+
     // give the web browser time to receive the data
     delay(100);
     // close the connection:
